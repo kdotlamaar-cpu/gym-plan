@@ -15,7 +15,7 @@ It's plain HTML, CSS and JavaScript with no build step. It installs on a phone l
 | `progress.html` | Weekly weigh-in, bodyweight-change chart (with a table view), 8-week consistency grid, best lifts |
 | `diet.html` | Calorie and protein targets, meal timing, protein sources, sample days |
 | `schedule.html` | Weekly layout, daily timeline, 6-week block |
-| `cult.html` | Wednesday class: Boxing ↔ HRX / S&C rotation, booking, what to bring |
+| `cult.html` | Wednesday class: pick and log the class you did (Boxing, Burn, HRX, S&C, Dance, Yoga, other), effort, class mix, last 8 weeks, class guide, booking |
 | `guide.html` | Progression, effort levels, deloads, back care, recovery, gym bag |
 | `gyms.html` | Addresses, hours, maps, sources |
 | `settings.html` | Who uses this phone, names, start date, backup / restore, install help |
@@ -29,10 +29,11 @@ On phones the app shows a bottom tab bar (Today · Workouts · Log · Progress �
 manifest.webmanifest      app name, icons, colours (for "Add to Home Screen")
 sw.js                     service worker: offline cache
 assets/css/style.css      all styles (light + dark)
-assets/js/data.js         THE PROGRAM: exercises, sets, reps, rest, photos, gyms, Cult rotation
+assets/js/data.js         THE PROGRAM: exercises, sets, reps, rest, photos, gyms, Cult classes
 assets/js/store.js        tracker storage (localStorage) + export/import
 assets/js/layout.js       header, tab bar, More sheet, theme, offline registration
-assets/js/home.js | workouts.js | tracker.js | progress.js | settings.js   page logic
+assets/js/cultlog.js      Cult class picker (used on Cult Day and Log)
+assets/js/home.js | workouts.js | tracker.js | cult.js | progress.js | settings.js   page logic
 assets/img/ex/            exercise photos (start = -0.jpg, finish = -1.jpg)
 assets/icons/             app icons
 ```

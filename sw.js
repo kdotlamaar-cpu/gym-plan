@@ -2,12 +2,13 @@
    Pages, scripts and styles: served from cache, refreshed in the background (so updates arrive).
    Exercise photos and icons: cache-first. Google Fonts: cached after the first visit.
    Bump VERSION when you change files, so phones drop the old cache. */
-const VERSION = "fogp-v4";
+const VERSION = "fogp-v5";
 const CORE = [
   "./", "index.html", "workouts.html", "tracker.html", "progress.html", "diet.html", "schedule.html",
   "cult.html", "guide.html", "gyms.html", "settings.html", "manifest.webmanifest",
   "assets/css/style.css", "assets/js/data.js", "assets/js/store.js", "assets/js/layout.js",
   "assets/js/home.js", "assets/js/workouts.js", "assets/js/tracker.js", "assets/js/progress.js", "assets/js/settings.js",
+  "assets/js/cultlog.js", "assets/js/cult.js",
   "assets/favicon.svg", "assets/icons/icon-192.png", "assets/icons/icon-512.png", "assets/icons/apple-touch-icon.png",
   "assets/img/ex/barbell-bench-press-medium-grip-0.jpg",
   "assets/img/ex/barbell-bench-press-medium-grip-1.jpg",

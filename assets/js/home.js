@@ -17,10 +17,11 @@
     today.innerHTML = '<span class="big">Rest</span><div><div class="l1">No gym today</div><div class="l2">Walk 8–10k steps and keep protein high. Monday is Push day at Step Up.</div></div><a class="btn" href="workouts.html#mon">Preview Monday</a>';
   } else {
     const p = G.PROGRAM[tk];
-    const title = p.loc === "cult" ? G.CULT[G.cultFormat(now)].name + " class" : p.title + " · " + p.focus;
+    const logged = G.className(Store.getDay(data, wk, me, tk));
+    const title = p.loc === "cult" ? (logged ? logged + " class · logged" : "Cult class · plan: " + G.CLASSES[G.cultFormat(now)].name) : p.title + " · " + p.focus;
     const where = p.loc === "cult" ? "Cult Andheri East · book the class closest to 5 PM" : "Step Up Fitness, Vile Parle East · 5:00–6:00 PM";
     today.innerHTML = '<span class="big">' + G.DAY_SHORT[tk] + '</span><div><div class="l1">' + title + '</div><div class="l2">' + where + '</div></div>' +
-      '<a class="btn" href="tracker.html#' + tk + '">' + (doneToday ? UI.ICON.check + "Done · view log" : UI.ICON.play + (p.loc === "cult" ? "Log class" : "Start workout")) + '</a>';
+      '<a class="btn" href="' + (p.loc === "cult" ? "cult.html" : "tracker.html#" + tk) + '">' + (doneToday ? UI.ICON.check + "Done · view log" : UI.ICON.play + (p.loc === "cult" ? "Pick your class" : "Start workout")) + '</a>';
   }
 
   /* stats for the person on this phone */
@@ -42,10 +43,11 @@
   document.getElementById("week-lbl").textContent = G.fmt(monday) + " – " + G.fmt(G.addDays(monday, 4));
   document.getElementById("board").innerHTML = G.DAY_KEYS.map((k, i) => {
     const p = G.PROGRAM[k];
-    const focus = p.loc === "cult" ? G.CULT[G.cultFormat(now)].name : p.title;
-    const sub = p.loc === "cult" ? "Class · alternates weekly" : p.focus;
+    const myCls = p.loc === "cult" ? G.className(Store.getDay(data, wk, me, k)) : "";
+    const focus = p.loc === "cult" ? (myCls || "Cult class") : p.title;
+    const sub = p.loc === "cult" ? (myCls ? "Your class this week" : "Plan: " + G.CLASSES[G.cultFormat(now)].name + " · any class counts") : p.focus;
     const da = !!Store.getDay(data, wk, "a", k).done, db = !!Store.getDay(data, wk, "b", k).done;
-    return '<a class="day-card' + (k === tk ? " is-today" : "") + '" href="tracker.html#' + k + '">' +
+    return '<a class="day-card' + (k === tk ? " is-today" : "") + '" href="' + (p.loc === "cult" ? "cult.html" : "tracker.html#" + k) + '">' +
       '<div class="dn"><b>' + G.DAY_SHORT[k] + '</b><span class="date">' + G.fmt(G.addDays(monday, i)) + '</span></div>' +
       '<div style="display:grid;gap:4px"><span class="chip ' + p.loc + '">' + G.GYMS[p.loc].short + '</span><span class="focus">' + focus + '</span><span class="tiny">' + sub + '</span></div>' +
       '<div class="ticks" role="img" aria-label="' + esc(names.a) + (da ? " done" : " not done") + ", " + esc(names.b) + (db ? " done" : " not done") + '"><span class="tick a' + (da ? " on" : "") + '"></span><span class="tick b' + (db ? " on" : "") + '"></span></div></a>';

@@ -78,7 +78,7 @@
         { id: "pl-hammer", tag: "E2", n: "Hammer curl", sets: 3, reps: "10–12", rest: 60, restTxt: "60 s", img: ["hammer-curls"], tip: "Thumbs up. Curl across your body for extra forearm work." }
       ]
     },
-    wed: { loc: "cult", type: "class", title: "Cult class", focus: "Boxing / HRX · S&C", tag: "Conditioning day. The class alternates every week." },
+    wed: { loc: "cult", type: "class", title: "Cult class", focus: "Any class · Boxing, Burn, HRX…", tag: "Conditioning day. Pick any class; the plan suggests Boxing and HRX on alternate weeks." },
     thu: {
       loc: "stepup", type: "legs", title: "Legs", focus: "Quads · glutes · hamstrings · calves · abs",
       tag: "The biggest calorie-burning day. Brace hard, then push the volume.",
@@ -110,22 +110,76 @@
     }
   };
 
-  const CULT = {
+  /* Cult classes you can log on Wednesday. `lvl` = intensity 1–3. kcal is a rough range for a 50-minute class. */
+  const CLASSES = {
     boxing: {
-      name: "Boxing", intensity: "High intensity",
-      why: "Cardio-heavy rounds of combos, footwork and pad or bag work. Builds stamina and core strength and burns a lot of calories.",
+      name: "Boxing", sub: "Bag & pads", lvl: 3, intensity: "High intensity", kcal: "500–700",
+      icon: '<path d="M7 9a5 5 0 0 1 10 0v4a5 5 0 0 1-5 5h-1a4 4 0 0 1-4-4z"/><path d="M7 13h4M8 21h8"/>',
+      why: "Cardio-heavy rounds of combos, footwork and pad or bag work, with core finishers. Builds stamina and core strength and burns a lot of calories.",
+      focus: ["Cardio", "Core", "Shoulders", "Coordination"],
       bring: ["Hand wraps or gloves (check whether the centre lends them)", "Towel and water", "Light, flat shoes"],
       tips: ["Keep your guard up between combos", "Turn your hips and back foot into each punch. Don't punch with just the arms.", "Breathe out sharply on every punch"],
       back: "Rotate through the feet and hips, not the lower back. Keep the core braced on hooks."
     },
+    burn: {
+      name: "Burn", sub: "HIIT cardio", lvl: 3, intensity: "High intensity", kcal: "450–650",
+      icon: '<path d="M12 3c.6 3.2 5 5.4 5 10.2A5 5 0 0 1 7 13.5c0-2.4 1.3-3.9 2.4-4.9.2 1.6.9 2.6 2 3.2-.3-3.1.2-6 .6-8.8z"/>',
+      why: "Short, all-out intervals of cardio and bodyweight moves with brief rests. Built to spike your heart rate, so it's one of the best fat-loss classes.",
+      focus: ["HIIT", "Fat loss", "Legs", "Stamina"],
+      bring: ["Towel and plenty of water", "Cushioned trainers for the jumps"],
+      tips: ["Go hard in the work intervals and recover fully in the rests", "Land softly through the whole foot", "Take the low-impact option the trainer shows as soon as your form slips"],
+      back: "Pick the low-impact versions of jumps and burpees. Keep the core braced on mountain climbers and planks."
+    },
     hrx: {
-      name: "HRX / S&C", intensity: "Medium–high intensity",
-      why: "Trainer-led full-body strength and conditioning circuits with dumbbells, kettlebells and bodyweight. Good for muscle, mobility and stamina.",
+      name: "HRX Workout", sub: "Functional", lvl: 3, intensity: "Medium–high intensity", kcal: "400–600",
+      icon: '<path d="M9 9V7.5a3 3 0 0 1 6 0V9"/><circle cx="12" cy="15" r="6"/>',
+      why: "Trainer-led full-body circuits with bodyweight, dumbbells and kettlebells. Mixes strength and conditioning in one session.",
+      focus: ["Full body", "Strength", "Conditioning"],
       bring: ["Towel and water", "Cross-trainers or flat shoes", "Arrive 10 minutes early to set up your station"],
       tips: ["Use weights you can control for every rep", "On jumps, land softly or step them out", "Keep moving during the work intervals and slow down if your form breaks"],
       back: "Tell the trainer before class. Swap heavy floor pickups and fast twisting for slower, braced versions."
+    },
+    sc: {
+      name: "S&C", sub: "Weights circuit", lvl: 2, intensity: "Medium intensity", kcal: "350–500",
+      icon: '<path d="M6.5 7v10M3.5 9.5v5M17.5 7v10M20.5 9.5v5M6.5 12h11"/>',
+      why: "Strength & Conditioning: squats, presses, rows and carries at a steadier pace. The closest class to a gym session.",
+      focus: ["Strength", "Muscle", "Core"],
+      bring: ["Towel and water", "Flat, stable shoes"],
+      tips: ["Pick a weight that lets you finish every rep cleanly", "Brace before each lift", "Treat it as a lighter lifting day so your legs are fresh for Thursday"],
+      back: "Ask for lighter loads on floor pickups and hinge with a flat back."
+    },
+    dance: {
+      name: "Dance Fitness", sub: "Cardio to music", lvl: 2, intensity: "Medium intensity", kcal: "350–500",
+      icon: '<path d="M9 18V5l11-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="17" cy="16" r="3"/>',
+      why: "Choreographed cardio to Bollywood and pop. Steady effort and a lot of fun, which makes it good active recovery between lifting days.",
+      focus: ["Cardio", "Coordination", "Recovery"],
+      bring: ["Towel and water", "Light shoes with some grip"],
+      tips: ["Follow the lower-intensity version for the first few songs", "Keep moving even when you miss steps"],
+      back: "Skip fast twists and deep back bends. Smaller steps are fine."
+    },
+    yoga: {
+      name: "Yoga", sub: "Mobility", lvl: 1, intensity: "Low intensity", kcal: "150–250",
+      icon: '<circle cx="12" cy="4.5" r="2"/><path d="M12 8v6M4.5 11l7.5 3 7.5-3M7 20l5-6 5 6"/>',
+      why: "Mobility, balance and breathing. The lowest intensity, and the right pick when you're sore or need recovery mid-week.",
+      focus: ["Mobility", "Recovery", "Breathing"],
+      bring: ["Towel and water", "Fitted clothes"],
+      tips: ["Go to the edge of the stretch, never into pain", "Match each movement to a breath"],
+      back: "Go easy on deep forward folds and twists. Bend your knees and use blocks."
+    },
+    other: {
+      name: "Other", sub: "Name it", lvl: 0, intensity: "", kcal: "",
+      icon: '<path d="M12 5v14M5 12h14"/>',
+      why: "Did a different class? Type its name and it's logged the same way.",
+      focus: [], bring: [], tips: [], back: ""
     }
   };
+  const CLASS_IDS = Object.keys(CLASSES);
+  const EFFORT = ["Easy", "Solid", "Hard", "All out"];
+  /** Name of the class logged in a day entry ("Burn"), or "" when none is set. */
+  function className(dl) {
+    if (!dl || !dl.cls || !CLASSES[dl.cls]) return "";
+    return dl.cls === "other" ? (dl.clsName || "Other class") : CLASSES[dl.cls].name;
+  }
 
   const img = (slug, n) => "assets/img/ex/" + slug + "-" + (n || 0) + ".jpg";
   /** Exercise that follows `e` in its day, or null. */
@@ -161,7 +215,7 @@
   function esc(s) { return String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c])); }
 
   window.GYM = {
-    DAY_KEYS, DAY_NAMES, DAY_SHORT, GYMS, WARMUP, COOLDOWN, PROGRAM, CULT, img, nextEx,
+    DAY_KEYS, DAY_NAMES, DAY_SHORT, GYMS, WARMUP, COOLDOWN, PROGRAM, CLASSES, CLASS_IDS, EFFORT, className, img, nextEx,
     mondayOf, mondayOfKey, isoWeek, weekKey, addDays, fmt, ymd, parseYmd, cultFormat, blockWeek, todayKey, esc
   };
 })();

@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Cult Day · Five O'Clock Gym Plan</title>
-<meta name="description" content="Wednesday class at Cult Andheri East: the Boxing and HRX / S&C rotation, how to book, what to bring and back-friendly tips.">
+<meta name="description" content="Log the Wednesday class at Cult Andheri East (Boxing, Burn, HRX, S&amp;C, Dance or Yoga), see your class history, and read what to bring and back-friendly tips.">
 <meta name="theme-color" content="#F1F3F6" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#0E131A" media="(prefers-color-scheme: dark)">
 <link rel="manifest" href="manifest.webmanifest">
@@ -25,31 +25,46 @@
 <main class="wrap">
   <section class="page-head">
     <h1>Cult Day</h1>
-    <p class="lede">One trainer-led class a week, in the middle of the lifting days. It alternates between Boxing and HRX / S&amp;C, so you get both pure conditioning and strength circuits.</p>
+    <p class="lede">One trainer-led class a week at Cult Andheri East. Tap the class you did and it's logged for the week. The plan suggests Boxing and HRX on alternate weeks, but any class counts.</p>
+  </section>
+
+  <section class="sec" id="log-sec">
+    <div class="log-top">
+      <div class="seg-ctl" id="who" role="group" aria-label="Who is logging"></div>
+      <div class="weeknav">
+        <button type="button" id="wk-prev" aria-label="Previous week">‹</button>
+        <span class="lbl" id="wk-label"></span>
+        <button type="button" id="wk-next" aria-label="Next week">›</button>
+        <button type="button" class="now" id="wk-now" hidden>This week</button>
+      </div>
+    </div>
+    <div id="log" aria-live="polite"></div>
+    <label class="field"><span id="note-lbl">Notes</span><textarea id="note" maxlength="400" placeholder="e.g. 5:15 slot, legs on fire, 6 PM batch is less crowded"></textarea></label>
   </section>
 
   <section class="sec">
-    <div class="today" id="this-week"></div>
+    <div class="sec-head"><h2>Your class mix</h2><span class="hint">Every class logged so far</span></div>
+    <div class="grid-2" id="mix"></div>
   </section>
 
   <section class="sec">
-    <div class="sec-head"><h2>The rotation</h2><span class="hint">Boxing in odd-numbered ISO weeks, HRX / S&amp;C in even-numbered ones</span></div>
-    <div class="grid-2" id="formats"></div>
+    <div class="sec-head"><h2>Last 8 Wednesdays</h2><span class="hint">Tap a week to change it</span></div>
+    <div class="cl-hist" id="hist"></div>
   </section>
 
   <section class="sec">
-    <div class="sec-head"><h2>Next 6 Wednesdays</h2></div>
-    <div class="table-wrap"><table class="data"><thead><tr><th>Date</th><th>Week</th><th>Class</th></tr></thead><tbody id="upcoming"></tbody></table></div>
+    <div class="sec-head"><h2>Class guide</h2><span class="hint">What each class is, what to bring and how to get the most from it</span></div>
+    <div class="grid-2" id="guide"></div>
   </section>
 
   <section class="sec">
     <div class="sec-head"><h2>How to book</h2></div>
     <ol class="steps">
       <li><span class="q">Step 1</span><span>Open the cult.fit app, go to <b>Classes</b>, and choose the <b>Cult Andheri East</b> centre.</span></li>
-      <li><span class="q">Step 2</span><span>Pick Wednesday and this week's format (Boxing or HRX / S&amp;C).</span></li>
+      <li><span class="q">Step 2</span><span>Pick Wednesday and a class. The plan suggests Boxing or HRX; Burn is a great fat-loss swap.</span></li>
       <li><span class="q">Step 3</span><span>Choose the slot closest to 5 PM. Evening classes run from 4 to 10 PM.</span></li>
       <li><span class="q">Step 4</span><span>Book both of you as early in the week as you can, because evening slots fill up. Check the app for the cancellation cut-off so you don't lose the booking.</span></li>
-      <li><span class="q">If full</span><span>Book the other format at the same time, or swap days: do Legs at Step Up on Wednesday and take the class on Thursday.</span></li>
+      <li><span class="q">If full</span><span>Book another class at the same time, or swap days: do Legs at Step Up on Wednesday and take the class on Thursday.</span></li>
     </ol>
   </section>
 
@@ -70,33 +85,7 @@
 <script src="assets/js/data.js"></script>
 <script src="assets/js/store.js"></script>
 <script src="assets/js/layout.js"></script>
-<script>
-(function(){
-  var G = GYM, names = Store.load().settings.names, now = new Date();
-  document.querySelectorAll("[data-name]").forEach(function(n){ n.textContent = names[n.dataset.name]; });
-  var wed = G.addDays(G.mondayOf(now), 2);
-  if (now > G.addDays(wed, 1)) wed = G.addDays(wed, 7);
-  var cur = G.cultFormat(wed), c = G.CULT[cur];
-  document.getElementById("this-week").innerHTML =
-    '<span class="big">' + G.fmt(wed) + '</span><div><div class="l1">' + c.name + ' · ' + c.intensity + '</div><div class="l2">Cult Andheri East, Pinnacle Business Park · book the class closest to 5 PM</div></div>';
-
-  document.getElementById("formats").innerHTML = ["boxing","hrx"].map(function(f){
-    var x = G.CULT[f], on = f === cur;
-    return '<div class="card"' + (on ? ' style="border-color:var(--cult);box-shadow:inset 0 0 0 1px var(--cult)"' : '') + '>' +
-      '<span class="chip cult">' + (on ? "This Wednesday" : "Next Wednesday") + '</span>' +
-      '<h3>' + x.name + '</h3><span class="eyebrow">' + x.intensity + '</span><p>' + x.why + '</p>' +
-      '<h4>Bring</h4><ul>' + x.bring.map(function(b){return '<li>'+b+'</li>';}).join("") + '</ul>' +
-      '<h4>Technique</h4><ul>' + x.tips.map(function(b){return '<li>'+b+'</li>';}).join("") + '</ul>' +
-      '<p class="swap">' + G.esc(names.b) + ': ' + x.back + '</p></div>';
-  }).join("");
-
-  var rows = "";
-  for (var i = 0; i < 6; i++) {
-    var d = G.addDays(wed, 7 * i), f = G.CULT[G.cultFormat(d)];
-    rows += '<tr><td class="mono">' + G.fmt(d) + '</td><td class="mono muted">' + G.weekKey(d) + '</td><td class="n">' + f.name + '</td></tr>';
-  }
-  document.getElementById("upcoming").innerHTML = rows;
-})();
-</script>
+<script src="assets/js/cultlog.js"></script>
+<script src="assets/js/cult.js"></script>
 </body>
 </html>

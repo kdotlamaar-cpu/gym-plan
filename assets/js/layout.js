@@ -29,7 +29,7 @@
     { id: "progress", href: "progress.html", label: "Progress", tab: true, d: "Bodyweight, best lifts, streaks" },
     { id: "diet", href: "diet.html", label: "Diet", d: "Calories, protein, meal timing" },
     { id: "schedule", href: "schedule.html", label: "Schedule", d: "The week and the 6-week block" },
-    { id: "cult", href: "cult.html", label: "Cult Day", d: "Boxing / HRX rotation and booking" },
+    { id: "cult", href: "cult.html", label: "Cult Day", d: "Log your class, history and guide" },
     { id: "guide", href: "guide.html", label: "Guide", d: "Progression, back care, recovery" },
     { id: "gyms", href: "gyms.html", label: "Gyms", d: "Addresses, hours, maps" },
     { id: "settings", href: "settings.html", label: "Settings", d: "Names, backup, install the app" }

@@ -35,7 +35,7 @@
     document.getElementById("days").innerHTML = G.DAY_KEYS.map((k, i) => {
       const p = G.PROGRAM[k];
       const da = !!Store.getDay(data, wk(), "a", k).done, db = !!Store.getDay(data, wk(), "b", k).done;
-      const label = p.loc === "cult" ? "Cult" : p.title;
+      const label = p.loc === "cult" ? (G.className(Store.getDay(data, wk(), S.me, k)) || "Cult") : p.title;
       return '<button type="button" class="daypill' + (p.loc === "cult" ? " cult" : "") + '" data-day="' + k + '" aria-pressed="' + (S.day === k) + '">' +
         "<b>" + G.DAY_SHORT[k] + "</b><span>" + (isThis && k === tk ? "Today" : label) + "</span>" +
         '<span class="pdots" aria-label="' + esc(names().a) + (da ? " done" : "") + ", " + esc(names().b) + (db ? " done" : "") + '"><i class="a' + (da ? " on" : "") + '"></i><i class="b' + (db ? " on" : "") + '"></i></span></button>';
@@ -86,12 +86,7 @@
     let html = "";
 
     if (p.loc === "cult") {
-      const c = G.CULT[G.cultFormat(S.monday)];
-      html += '<div class="session-card"><div class="top"><div style="display:grid;gap:4px"><h2>' + c.name + ' class</h2><span class="hint">' + G.DAY_NAMES[k] + " " + G.fmt(date) + ' · Cult Andheri East · ' + c.intensity + '</span></div>' +
-        (dl.done ? '<span class="done-badge">' + ICON.check.replace("<svg", '<svg width="16" height="16"') + 'Done</span>' : '') + '</div>' +
-        '<p>' + c.why + '</p>' + partner +
-        '<button type="button" class="btn ' + (dl.done ? "" : "go") + ' block" id="finish">' + (dl.done ? "Mark as not done" : ICON.check + "Mark class done") + '</button>' +
-        '<p class="hint">Booking, rotation and what to bring are on the <a href="cult.html">Cult Day page</a>.</p></div>';
+      html += '<div id="cult-log"></div><a class="hint" href="cult.html">Class history, guide and booking →</a>';
     } else {
       const pr = progressOf(p);
       html += '<div class="session-card"><div class="top"><div style="display:grid;gap:4px"><h2>' + p.title + " · " + p.focus + '</h2><span class="hint">' + G.DAY_NAMES[k] + " " + G.fmt(date) + ' · Step Up Fitness</span></div>' +
@@ -128,13 +123,14 @@
 
     html += '<label class="field"><span>Notes for ' + esc(names()[S.me]) + '</span><textarea id="note" maxlength="400" placeholder="' + (p.loc === "cult" ? "e.g. 5:15 Boxing, 6 rounds, felt strong" : "e.g. squat felt heavy, slept badly") + '">' + esc(dl.note || "") + "</textarea></label>";
     el.innerHTML = html;
+    if (p.loc === "cult") CultLog.render({ el: document.getElementById("cult-log"), monday: S.monday, p: S.me, onChange: () => { data = Store.load(); renderDays(); } });
     bindSession();
   }
 
   function bindSession() {
     const p = G.PROGRAM[S.day], el = document.getElementById("session");
     const fin = document.getElementById("finish");
-    fin.addEventListener("click", () => {
+    if (fin) fin.addEventListener("click", () => {
       let summary = "";
       commit(d => { const dl = Store.day(d, wk(), S.me, S.day); dl.done = !dl.done; });
       const nowDone = Store.getDay(data, wk(), S.me, S.day).done;

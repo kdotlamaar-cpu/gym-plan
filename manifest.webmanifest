@@ -1,0 +1,20 @@
+{
+  "name": "Five O'Clock Gym Plan",
+  "short_name": "Gym Plan",
+  "description": "Mon–Fri 5–6 PM training plan and tracker: Step Up Fitness × 4, Cult Andheri East × 1.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0E131A",
+  "theme_color": "#0E131A",
+  "icons": [
+    { "src": "assets/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "assets/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "assets/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    { "name": "Log today's workout", "short_name": "Log", "url": "./tracker.html" },
+    { "name": "Progress", "short_name": "Progress", "url": "./progress.html" }
+  ]
+}

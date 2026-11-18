@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Cult Day · Five O'Clock Gym Plan</title>
+<meta name="description" content="Wednesday class at Cult Andheri East: the Boxing and HRX / S&C rotation, how to book, what to bring and back-friendly tips.">
+<meta name="theme-color" content="#F1F3F6" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0E131A" media="(prefers-color-scheme: dark)">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="assets/icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Gym Plan">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Barlow:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="assets/css/style.css">
+<script>try{var t=localStorage.getItem("fogp:theme");if(t)document.documentElement.dataset.theme=t}catch(e){}</script>
+</head>
+<body data-page="cult">
+<header id="site-header"></header>
+
+<main class="wrap">
+  <section class="page-head">
+    <h1>Cult Day</h1>
+    <p class="lede">One trainer-led class a week, in the middle of the lifting days. It alternates between Boxing and HRX / S&amp;C, so you get both pure conditioning and strength circuits.</p>
+  </section>
+
+  <section class="sec">
+    <div class="today" id="this-week"></div>
+  </section>
+
+  <section class="sec">
+    <div class="sec-head"><h2>The rotation</h2><span class="hint">Boxing in odd-numbered ISO weeks, HRX / S&amp;C in even-numbered ones</span></div>
+    <div class="grid-2" id="formats"></div>
+  </section>
+
+  <section class="sec">
+    <div class="sec-head"><h2>Next 6 Wednesdays</h2></div>
+    <div class="table-wrap"><table class="data"><thead><tr><th>Date</th><th>Week</th><th>Class</th></tr></thead><tbody id="upcoming"></tbody></table></div>
+  </section>
+
+  <section class="sec">
+    <div class="sec-head"><h2>How to book</h2></div>
+    <ol class="steps">
+      <li><span class="q">Step 1</span><span>Open the cult.fit app, go to <b>Classes</b>, and choose the <b>Cult Andheri East</b> centre.</span></li>
+      <li><span class="q">Step 2</span><span>Pick Wednesday and this week's format (Boxing or HRX / S&amp;C).</span></li>
+      <li><span class="q">Step 3</span><span>Choose the slot closest to 5 PM. Evening classes run from 4 to 10 PM.</span></li>
+      <li><span class="q">Step 4</span><span>Book both of you as early in the week as you can, because evening slots fill up. Check the app for the cancellation cut-off so you don't lose the booking.</span></li>
+      <li><span class="q">If full</span><span>Book the other format at the same time, or swap days: do Legs at Step Up on Wednesday and take the class on Thursday.</span></li>
+    </ol>
+  </section>
+
+  <section class="sec">
+    <div class="callout">
+      <h3>For <span data-name="b">Momin</span>'s back</h3>
+      <ul>
+        <li>Tell the trainer about the back issue before class starts.</li>
+        <li>Brace your core on every rep. Rotate through the hips and feet, not the lower back.</li>
+        <li>Step out jumps and burpees if they hurt. Your pace matters more than matching the person next to you.</li>
+        <li>Stop if there's sharp pain or pain running down a leg.</li>
+      </ul>
+    </div>
+  </section>
+</main>
+
+<footer id="site-footer"></footer>
+<script src="assets/js/data.js"></script>
+<script src="assets/js/store.js"></script>
+<script src="assets/js/layout.js"></script>
+<script>
+(function(){
+  var G = GYM, names = Store.load().settings.names, now = new Date();
+  document.querySelectorAll("[data-name]").forEach(function(n){ n.textContent = names[n.dataset.name]; });
+  var wed = G.addDays(G.mondayOf(now), 2);
+  if (now > G.addDays(wed, 1)) wed = G.addDays(wed, 7);
+  var cur = G.cultFormat(wed), c = G.CULT[cur];
+  document.getElementById("this-week").innerHTML =
+    '<span class="big">' + G.fmt(wed) + '</span><div><div class="l1">' + c.name + ' · ' + c.intensity + '</div><div class="l2">Cult Andheri East, Pinnacle Business Park · book the class closest to 5 PM</div></div>';
+
+  document.getElementById("formats").innerHTML = ["boxing","hrx"].map(function(f){
+    var x = G.CULT[f], on = f === cur;
+    return '<div class="card"' + (on ? ' style="border-color:var(--cult);box-shadow:inset 0 0 0 1px var(--cult)"' : '') + '>' +
+      '<span class="chip cult">' + (on ? "This Wednesday" : "Next Wednesday") + '</span>' +
+      '<h3>' + x.name + '</h3><span class="eyebrow">' + x.intensity + '</span><p>' + x.why + '</p>' +
+      '<h4>Bring</h4><ul>' + x.bring.map(function(b){return '<li>'+b+'</li>';}).join("") + '</ul>' +
+      '<h4>Technique</h4><ul>' + x.tips.map(function(b){return '<li>'+b+'</li>';}).join("") + '</ul>' +
+      '<p class="swap">' + G.esc(names.b) + ': ' + x.back + '</p></div>';
+  }).join("");
+
+  var rows = "";
+  for (var i = 0; i < 6; i++) {
+    var d = G.addDays(wed, 7 * i), f = G.CULT[G.cultFormat(d)];
+    rows += '<tr><td class="mono">' + G.fmt(d) + '</td><td class="mono muted">' + G.weekKey(d) + '</td><td class="n">' + f.name + '</td></tr>';
+  }
+  document.getElementById("upcoming").innerHTML = rows;
+})();
+</script>
+</body>
+</html>

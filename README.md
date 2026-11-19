@@ -1,75 +1,50 @@
-# Five O'Clock Gym Plan
+# Five O'Clock Gym
 
-A mobile-first training plan and workout tracker for a Monday–Friday, 5–6 PM routine:
-four strength sessions at Step Up Fitness (Vile Parle East) and one class at Cult Andheri East.
+Workout plan and tracker for Vikas and Momin. Step Up Fitness (Mon, Tue, Thu, Fri) and a Cult Andheri East class (Wed), 5–6 PM.
 
-It's plain HTML, CSS and JavaScript with no build step. It installs on a phone like an app (PWA) and works offline once it's hosted.
+**Live:** https://kdotlamaar-cpu.github.io/gym-plan/
+Personal links: `?who=a` (Vikas) · `?who=b` (Momin)
 
-## Pages
+## Stack
 
-| Page | What's on it |
+- React 18 + TypeScript, built with Vite
+- Tailwind CSS 4, Framer Motion, lucide icons, vaul bottom sheets, Recharts
+- Zustand for state, saved to the phone's localStorage (no server, no accounts)
+- vite-plugin-pwa: installable, works offline, updates itself
+- Hosted on GitHub Pages from the `gh-pages` branch
+
+## Screens
+
+| Tab | What it does |
 |---|---|
-| `index.html` | **Today**: greeting, today's session with a Start button, weekly stats, this week's board |
-| `workouts.html` | Each workout with start/finish **exercise photos**, sets, reps, rest, tips, back-friendly swaps, warm-up and cool-down |
-| `tracker.html` | **Log**: set-by-set kg × reps, last week's numbers, a rest timer (vibrate + beep), finish-workout summary |
-| `progress.html` | Weekly weigh-in, bodyweight-change chart (with a table view), 8-week consistency grid, best lifts |
-| `diet.html` | Calorie and protein targets, meal timing, protein sources, sample days |
-| `schedule.html` | Weekly layout, daily timeline, 6-week block |
-| `cult.html` | Wednesday class: pick and log the class you did (Boxing, Burn, HRX, S&C, Dance, Yoga, other), effort, class mix, last 8 weeks, class guide, booking |
-| `guide.html` | Progression, effort levels, deloads, back care, recovery, gym bag |
-| `gyms.html` | Addresses, hours, maps, sources |
-| `settings.html` | Who uses this phone, names, start date, backup / restore, install help |
+| Today | Today's session and Start button, week strip, quick stats |
+| Train | Day tabs, exercise cards with set logging and a rest timer. Wednesday is a one-tap class picker |
+| Progress | Weekly weigh-in, weight chart, 8-week consistency grid, best lifts |
+| Me | Who uses this phone, plan, diet, gyms, names and weights, share links, install, theme, backup |
 
-On phones the app shows a bottom tab bar (Today · Workouts · Log · Progress · More). On desktop it shows a top menu.
-
-## Project layout
+## Code layout
 
 ```
-*.html                    one file per page
-manifest.webmanifest      app name, icons, colours (for "Add to Home Screen")
-sw.js                     service worker: offline cache
-assets/css/style.css      all styles (light + dark)
-assets/js/data.js         THE PROGRAM: exercises, sets, reps, rest, photos, gyms, Cult classes
-assets/js/store.js        tracker storage (localStorage) + export/import
-assets/js/layout.js       header, tab bar, More sheet, theme, offline registration
-assets/js/cultlog.js      Cult class picker (used on Cult Day and Log)
-assets/js/home.js | workouts.js | tracker.js | cult.js | progress.js | settings.js   page logic
-assets/img/ex/            exercise photos (start = -0.jpg, finish = -1.jpg)
-assets/icons/             app icons
+src/data/program.ts   THE PROGRAM: exercises, sets, reps, rest, photos, gyms, Cult classes
+src/data/content.ts   plan, diet and gym-bag text
+src/store/data.ts     logs + settings (localStorage, migrates the old site's data)
+src/store/timer.ts    rest timer
+src/components/       UI kit, app shell, exercise card, class picker
+src/screens/          Today, Train, Progress, Me, Plan / Diet / Gyms
+public/ex/            exercise photos (free-exercise-db, public domain)
+public/*.html         redirects from the old page URLs
 ```
 
-To change an exercise, its sets, reps, rest time or photo, edit `assets/js/data.js`. Every page reads from it.
+To change an exercise, edit `src/data/program.ts`.
 
-## Data
+## Develop and deploy
 
-- Logs are saved in each phone's browser (`localStorage`). There's no server.
-- **Settings → This phone belongs to** sets who the Log page and Today stats are for.
-- **Settings → Export backup** downloads a `.json` file. **Import backup** loads it on another phone and replaces that phone's data. Use this to share logs with your partner or move to a new phone.
-- Clearing browser data deletes the logs, so export now and then.
+```bash
+npm install
+npm run dev       # http://localhost:5173/gym-plan/
+npm run deploy    # builds and publishes to the gh-pages branch
+```
 
-## Publish on GitHub Pages
+Commit your source changes to `main` as usual. `npm run deploy` publishes the built site; GitHub Pages picks it up in about a minute.
 
-1. Create a new repository on GitHub, for example `gym-plan`.
-2. From this folder, run:
-   ```bash
-   git init
-   git add .
-   git commit -m "Five O'Clock Gym Plan"
-   git branch -M main
-   git remote add origin https://github.com/<your-username>/gym-plan.git
-   git push -u origin main
-   ```
-3. On GitHub, open **Settings → Pages**. Set **Source: Deploy from a branch**, **Branch: `main`** and **folder: `/ (root)`**, then save.
-4. After a minute the site is live at `https://<your-username>.github.io/gym-plan/`.
-5. On each phone, open that link and install it:
-   - **Android (Chrome):** ⋮ → **Install app**
-   - **iPhone (Safari):** Share → **Add to Home Screen**
-
-### Updating later
-
-After you change files and push, phones pick up the new version on their next visit or two. To force everyone onto it straight away, change `VERSION` at the top of `sw.js` (e.g. `fogp-v2`) before you push.
-
-## Credits
-
-Exercise photos: [free-exercise-db](https://github.com/yuhonas/free-exercise-db), public domain (Unlicense).
-Gym details from cult.fit listings (Nov 2026). Diet figures are general fitness guidance, not medical advice.
+Data stays on each phone. Use Me → Export / Restore backup to move it between phones.

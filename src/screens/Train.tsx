@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { Navigate, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
-import { Check, ChevronLeft, ChevronRight, Flame, Info, MapPin, NotebookPen, Trophy } from "lucide-react";
-import { COOLDOWN, PROGRAM, WARMUP } from "@/data/program";
+import { ArrowLeftRight, Check, ChevronLeft, ChevronRight, Flame, Footprints, Info, MapPin, NotebookPen, Trophy } from "lucide-react";
+import { COOLDOWN, WARMUP } from "@/data/program";
 import { DAY_KEYS, DAY_NAMES, DAY_SHORT, addDays, mondayOf, mondayOfKey, todayKey, weekKey } from "@/lib/dates";
 import { getDay, useGym } from "@/store/data";
 import { useTimer } from "@/store/timer";
@@ -11,7 +11,9 @@ import { buzz, cn } from "@/lib/utils";
 import { Button, Card, Ring, Sheet, toast } from "@/components/ui";
 import { ExerciseCard } from "@/components/ExerciseCard";
 import { ClassPicker } from "@/components/ClassPicker";
-import type { DayKey, LiftDay } from "@/data/types";
+import { ArrangeSheet } from "@/components/ArrangeSheet";
+import { SESSION_LABEL, isShuffled, programOf, sessionOf } from "@/lib/plan";
+import type { DayKey, LiftDay, SessionKey } from "@/data/types";
 
 export default function Train() {
   const { day } = useParams();
@@ -20,6 +22,8 @@ export default function Train() {
   const monday = (sp.get("w") && mondayOfKey(sp.get("w")!)) || thisMonday;
   const isThisWeek = monday.getTime() === thisMonday.getTime();
   const nav = useNavigate();
+  const data = useGym(s => s.data);
+  const [arrange, setArrange] = useState(false);
 
   if (!day || !DAY_KEYS.includes(day as DayKey)) return <Navigate to={"/train/" + (todayKey() || "mon")} replace />;
   const k = day as DayKey;
@@ -42,15 +46,40 @@ export default function Train() {
         </div>
       </header>
 
+      <div className="flex items-center justify-between gap-3">
+        <p className="text-[13px] text-muted">{isShuffled(data, wk) ? "Shuffled this week" : "Your usual week"}</p>
+        <button type="button" onClick={() => setArrange(true)} className="flex h-8 items-center gap-1.5 rounded-lg px-2.5 text-[13px] font-medium text-accent hover:bg-card-2">
+          <ArrowLeftRight className="size-3.5" /> Arrange week
+        </button>
+      </div>
+
       <DayTabs k={k} monday={monday} wk={wk} isThisWeek={isThisWeek} tk={tk} onPick={d => nav({ pathname: "/train/" + d, search: sp.toString() }, { replace: true })} />
 
       <AnimatePresence mode="wait" initial={false}>
         <motion.div key={k + wk} initial={{ opacity: 0, x: 12 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -12 }} transition={{ duration: .16 }} className="space-y-5">
-          {k === "wed" ? <ClassDay wk={wk} monday={monday} /> : <LiftSession k={k} wk={wk} prevWk={weekKey(addDays(monday, -7))} />}
+          <Session s={sessionOf(data, wk, k)} k={k} wk={wk} monday={monday} onArrange={() => setArrange(true)} />
           <Note k={k} wk={wk} />
         </motion.div>
       </AnimatePresence>
+      <ArrangeSheet open={arrange} onOpenChange={setArrange} wk={wk} monday={monday} />
     </div>
+  );
+}
+
+function Session({ s, k, wk, monday, onArrange }: { s: SessionKey; k: DayKey; wk: string; monday: Date; onArrange: () => void }) {
+  if (s === "rest") return <RestDay onArrange={onArrange} />;
+  if (s === "class") return <ClassDay k={k} wk={wk} monday={monday} />;
+  return <LiftSession k={k} p={programOf(s) as LiftDay} wk={wk} prevWk={weekKey(addDays(monday, -7))} />;
+}
+
+function RestDay({ onArrange }: { onArrange: () => void }) {
+  return (
+    <Card className="p-6 text-center">
+      <span className="mx-auto grid size-12 place-items-center rounded-2xl bg-card-2"><Footprints className="size-6" /></span>
+      <h2 className="mt-3 text-xl font-bold tracking-tight">Rest day</h2>
+      <p className="mx-auto mt-1 max-w-[32ch] text-[14px] text-muted">Walk 8–10k steps and keep protein high. Want to train today instead?</p>
+      <Button variant="secondary" className="mt-5" onClick={onArrange}><ArrowLeftRight className="size-4" /> Put a session here</Button>
+    </Card>
   );
 }
 
@@ -61,7 +90,7 @@ function DayTabs({ k, monday, wk, isThisWeek, tk, onPick }: { k: DayKey; monday:
     <div role="tablist" aria-label="Day" className="grid grid-cols-5 gap-1.5">
       {DAY_KEYS.map(d => {
         const on = d === k, done = !!getDay(data, wk, me, d).done;
-        const label = d === "wed" ? "Class" : PROGRAM[d].title;
+        const label = SESSION_LABEL[sessionOf(data, wk, d)];
         return (
           <button key={d} role="tab" aria-selected={on} onClick={() => onPick(d)}
             className={cn("relative flex flex-col items-center gap-0.5 rounded-xl border py-2.5 transition-colors", on ? "border-fg bg-fg text-bg" : "border-line bg-card text-fg hover:border-muted/50")}>
@@ -76,9 +105,8 @@ function DayTabs({ k, monday, wk, isThisWeek, tk, onPick }: { k: DayKey; monday:
   );
 }
 
-function LiftSession({ k, wk, prevWk }: { k: DayKey; wk: string; prevWk: string }) {
+function LiftSession({ k, p, wk, prevWk }: { k: DayKey; p: LiftDay; wk: string; prevWk: string }) {
   const { me } = useMe();
-  const p = PROGRAM[k] as LiftDay;
   const data = useGym(s => s.data);
   const setDone = useGym(s => s.setDone);
   const stopRest = useTimer(s => s.stop);
@@ -92,7 +120,7 @@ function LiftSession({ k, wk, prevWk }: { k: DayKey; wk: string; prevWk: string 
   const total = counts.reduce((a, c) => a + c.total, 0), doneSets = counts.reduce((a, c) => a + c.done, 0);
   const firstOpen = counts.findIndex(c => c.done < c.total);
   const [open, setOpen] = useState<number>(firstOpen === -1 ? -1 : firstOpen);
-  useEffect(() => { setOpen(firstOpen === -1 ? -1 : firstOpen); /* reset when switching day */ }, [k, wk]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { setOpen(firstOpen === -1 ? -1 : firstOpen); /* reset when the day or its session changes */ }, [k, wk, p.type]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const volume = p.ex.reduce((a, e) => a + (dl.sets?.[e.id] || []).reduce((v, s) => v + (s.ok && s.kg && s.reps ? s.kg * s.reps : 0), 0), 0);
 
@@ -170,17 +198,17 @@ function Steps({ title, steps }: { title: string; steps: [string, string][] }) {
   );
 }
 
-function ClassDay({ wk, monday }: { wk: string; monday: Date }) {
+function ClassDay({ k, wk, monday }: { k: DayKey; wk: string; monday: Date }) {
   const { me } = useMe();
   const data = useGym(s => s.data);
-  const done = !!getDay(data, wk, me, "wed").cls;
+  const done = !!getDay(data, wk, me, k).cls;
   return (
     <>
       <div>
-        <div className="flex items-center gap-1.5 text-[13px] text-muted"><MapPin className="size-3.5" /> Cult Andheri East · {DAY_NAMES.wed} {addDays(monday, 2).getDate()}</div>
+        <div className="flex items-center gap-1.5 text-[13px] text-muted"><MapPin className="size-3.5" /> Cult Andheri East · {DAY_NAMES[k]} {addDays(monday, DAY_KEYS.indexOf(k)).getDate()}</div>
         <h2 className="mt-1 text-xl font-bold tracking-tight">{done ? "Your class" : "Which class did you do?"}</h2>
       </div>
-      <ClassPicker wk={wk} monday={monday} p={me} />
+      <ClassPicker wk={wk} day={k} monday={monday} p={me} />
     </>
   );
 }

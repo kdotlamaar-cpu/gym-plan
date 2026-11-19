@@ -7,15 +7,15 @@ import { plannedClass } from "@/lib/dates";
 import { buzz, cn } from "@/lib/utils";
 import { ClassIcon } from "./icons";
 import { toast } from "./ui";
-import type { Person } from "@/data/types";
+import type { DayKey, Person } from "@/data/types";
 
 const IDS = Object.keys(CLASSES);
 
 /** Wednesday: tap the class you did. One tap logs it and marks the day done. */
-export function ClassPicker({ wk, monday, p }: { wk: string; monday: Date; p: Person }) {
+export function ClassPicker({ wk, day, monday, p }: { wk: string; day: DayKey; monday: Date; p: Person }) {
   const data = useGym(s => s.data);
   const setClass = useGym(s => s.setClass);
-  const dl = getDay(data, wk, p, "wed");
+  const dl = getDay(data, wk, p, day);
   const cur = dl.cls && CLASSES[dl.cls] ? dl.cls : null;
   const planned = plannedClass(monday);
   const nameRef = useRef<HTMLInputElement>(null);
@@ -24,7 +24,7 @@ export function ClassPicker({ wk, monday, p }: { wk: string; monday: Date; p: Pe
 
   function pick(id: string) {
     if (id === cur) return;
-    setClass(wk, p, id);
+    setClass(wk, p, day, id);
     buzz(20);
     if (id !== "other") toast(`${CLASSES[id].name} logged. Nice work.`);
   }
@@ -64,7 +64,7 @@ export function ClassPicker({ wk, monday, p }: { wk: string; monday: Date; p: Pe
           <motion.label initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} className="block overflow-hidden">
             <span className="mb-1.5 block text-[13px] font-medium text-muted">Class name</span>
             <input ref={nameRef} defaultValue={dl.clsName || ""} maxLength={30} placeholder="e.g. Kickboxing, Pilates"
-              onBlur={ev => { const v = ev.target.value.trim(); setClass(wk, p, "other", v); if (v) toast(`${v} logged.`); }}
+              onBlur={ev => { const v = ev.target.value.trim(); setClass(wk, p, day, "other", v); if (v) toast(`${v} logged.`); }}
               onKeyDown={ev => { if (ev.key === "Enter") (ev.target as HTMLInputElement).blur(); }}
               className="h-12 w-full rounded-xl border border-line bg-card px-4 text-base outline-none focus:border-accent" />
           </motion.label>
@@ -85,7 +85,7 @@ export function ClassPicker({ wk, monday, p }: { wk: string; monday: Date; p: Pe
       </AnimatePresence>
 
       {cur && (
-        <button type="button" onClick={() => { setClass(wk, p, null); toast("Wednesday cleared."); }} className="flex items-center gap-1.5 text-[13px] font-medium text-muted hover:text-fg">
+        <button type="button" onClick={() => { setClass(wk, p, day, null); toast("Class log cleared."); }} className="flex items-center gap-1.5 text-[13px] font-medium text-muted hover:text-fg">
           <RotateCcw className="size-3.5" /> Clear
         </button>
       )}

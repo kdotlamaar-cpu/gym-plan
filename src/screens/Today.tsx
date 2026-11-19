@@ -1,19 +1,22 @@
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { ArrowRight, Check, Clock, Flame, MapPin, Moon, TrendingDown, TrendingUp } from "lucide-react";
-import { CLASSES, PROGRAM } from "@/data/program";
+import { CLASSES } from "@/data/program";
+import { SESSION_LABEL, planFor, programOf, sessionOf } from "@/lib/plan";
 import { DAY_KEYS, DAY_NAMES, DAY_SHORT, addDays, blockWeek, mondayOf, plannedClass, todayKey, weekKey } from "@/lib/dates";
 import { getDay, getWeight, useGym } from "@/store/data";
 import { useMe } from "@/lib/hooks";
 import { img, cn } from "@/lib/utils";
 import { Avatar, Card } from "@/components/ui";
 import { ClassIcon } from "@/components/icons";
-import type { DayKey, GymData, Person } from "@/data/types";
+import type { DayKey, GymData, LiftDay, Person } from "@/data/types";
 
 const DOW = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
 export function className(data: GymData, wk: string, p: Person) {
-  const d = getDay(data, wk, p, "wed");
+  const k = DAY_KEYS.find(x => CLASSES[getDay(data, wk, p, x).cls || ""]);
+  if (!k) return "";
+  const d = getDay(data, wk, p, k);
   if (!d.cls || !CLASSES[d.cls]) return "";
   return d.cls === "other" ? d.clsName || "Other class" : CLASSES[d.cls].name;
 }
@@ -69,6 +72,7 @@ export default function Today() {
                   done ? "bg-primary text-primary-fg" : isToday ? "ring-2 ring-fg" : "bg-card-2 text-muted")}>
                   {done ? <Check className="size-4" strokeWidth={3} /> : d.getDate()}
                 </span>
+                <span className={cn("text-[11px] font-medium", isToday ? "text-fg" : "text-muted")}>{SESSION_LABEL[sessionOf(data, wk, k)]}</span>
               </Link>
             );
           })}
@@ -104,14 +108,24 @@ function Hero({ tk, wk }: { tk: DayKey | null; wk: string }) {
       <Card className="p-6">
         <div className="flex items-center gap-2 text-sm font-medium text-muted"><Moon className="size-4" /> Rest day</div>
         <h2 className="mt-2 text-2xl font-bold tracking-tight">Recover and walk</h2>
-        <p className="mt-1 text-muted">8–10k steps, high protein, early night. Monday is Push day.</p>
+        <p className="mt-1 text-muted">8–10k steps, high protein, early night. Monday is {SESSION_LABEL[planFor(data, weekKey(addDays(mondayOf(new Date()), 7))).mon]}.</p>
         <Link to="/train/mon" className="mt-5 inline-flex h-11 items-center gap-2 rounded-xl bg-card-2 px-4 text-[15px] font-medium">Preview Monday <ArrowRight className="size-4" /></Link>
       </Card>
     );
   }
-  const p = PROGRAM[tk];
+  const s = sessionOf(data, wk, tk);
   const dl = getDay(data, wk, me, tk);
-  if (p.loc === "cult") {
+  if (s === "rest") {
+    return (
+      <Card className="p-6">
+        <div className="flex items-center gap-2 text-sm font-medium text-muted"><Moon className="size-4" /> Rest day</div>
+        <h2 className="mt-2 text-2xl font-bold tracking-tight">No session today</h2>
+        <p className="mt-1 text-muted">You moved today to rest. Walk 8–10k steps and keep protein high.</p>
+        <Link to={"/train/" + tk} className="mt-5 inline-flex h-11 items-center gap-2 rounded-xl bg-card-2 px-4 text-[15px] font-medium">Change the plan <ArrowRight className="size-4" /></Link>
+      </Card>
+    );
+  }
+  if (s === "class") {
     const logged = className(data, wk, me), planned = plannedClass(new Date());
     return (
       <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
@@ -123,7 +137,7 @@ function Hero({ tk, wk }: { tk: DayKey | null; wk: string }) {
             <div className="flex items-center gap-2 text-sm font-medium text-muted"><MapPin className="size-4" /> Cult Andheri East</div>
             <h2 className="mt-2 text-3xl font-bold tracking-tight">{logged || "Class day"}</h2>
             <p className="mt-1 max-w-[30ch] text-muted">{logged ? "Logged. Nice work." : `Any class counts. The plan suggests ${CLASSES[planned].name}.`}</p>
-            <Link to="/train/wed" className={cn("mt-6 flex h-14 items-center justify-center gap-2 rounded-2xl text-base font-semibold transition active:scale-[.98]", logged ? "bg-card-2" : "bg-primary text-primary-fg")}>
+            <Link to={"/train/" + tk} className={cn("mt-6 flex h-14 items-center justify-center gap-2 rounded-2xl text-base font-semibold transition active:scale-[.98]", logged ? "bg-card-2" : "bg-primary text-primary-fg")}>
               {logged ? <><Check className="size-5" /> Change class</> : <>Log your class <ArrowRight className="size-5" /></>}
             </Link>
           </div>
@@ -131,6 +145,7 @@ function Hero({ tk, wk }: { tk: DayKey | null; wk: string }) {
       </motion.div>
     );
   }
+  const p = programOf(s) as LiftDay;
   const total = p.ex.reduce((a, e) => a + e.sets, 0);
   const doneSets = p.ex.reduce((a, e) => a + (dl.sets?.[e.id] || []).filter(s => s.ok).length, 0);
   return (

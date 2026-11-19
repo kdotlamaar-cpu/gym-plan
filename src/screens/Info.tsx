@@ -3,9 +3,10 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { ExternalLink, MapPin, Navigation, Clock } from "lucide-react";
 import { BACK, BAG, BLOCK, DAY_TIMELINE, MEALS, PROGRESSION, PROTEIN, RULES, TARGETS } from "@/data/content";
-import { GYMS, PROGRAM } from "@/data/program";
+import { GYMS } from "@/data/program";
 import { DAY_KEYS, DAY_NAMES, blockWeek } from "@/lib/dates";
 import { useGym } from "@/store/data";
+import { programOf, usualPlan } from "@/lib/plan";
 import { useMe } from "@/lib/hooks";
 import { cn } from "@/lib/utils";
 import { Card, PageHeader, Segmented } from "@/components/ui";
@@ -26,23 +27,24 @@ function Section({ title, children, note }: { title: string; children: React.Rea
 export function Plan() {
   const { names } = useMe();
   const start = useGym(s => s.data.settings.start);
+  const usual = usualPlan(useGym(s => s.data));
   const bw = blockWeek(start, new Date());
   return (
     <div className="space-y-7">
       <PageHeader back="/me" title="Weekly plan" subtitle="Mon–Fri, 5:00–6:00 PM. Four lifting days, one class." />
 
-      <Section title="The week">
+      <Section title="Your usual week" note="Shuffle any week in Train">
         <Card className="divide-y divide-line overflow-hidden">
           {DAY_KEYS.map(k => {
-            const p = PROGRAM[k];
+            const p = programOf(usual[k]);
             return (
               <Link key={k} to={"/train/" + k} className="flex items-center gap-3 px-4 py-3 hover:bg-card-2/60">
                 <span className="w-10 text-[13px] font-medium text-muted">{DAY_NAMES[k].slice(0, 3)}</span>
                 <span className="min-w-0 flex-1">
-                  <span className="block text-[15px] font-semibold">{p.loc === "cult" ? "Cult class" : p.title}</span>
-                  <span className="block truncate text-[13px] text-muted">{p.focus}</span>
+                  <span className="block text-[15px] font-semibold">{!p ? "Rest" : p.loc === "cult" ? "Cult class" : p.title}</span>
+                  <span className="block truncate text-[13px] text-muted">{p ? p.focus : "8–10k steps, light mobility"}</span>
                 </span>
-                <span className="shrink-0 rounded-full bg-card-2 px-2.5 py-1 text-[11px] font-medium">{GYMS[p.loc].short}</span>
+                {p && <span className="shrink-0 rounded-full bg-card-2 px-2.5 py-1 text-[11px] font-medium">{GYMS[p.loc].short}</span>}
               </Link>
             );
           })}

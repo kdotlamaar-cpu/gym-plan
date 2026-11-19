@@ -8,6 +8,7 @@ import { useMe } from "@/lib/hooks";
 import { cn, parseSet } from "@/lib/utils";
 import { Button, Card, PageHeader, toast } from "@/components/ui";
 import { streakOf } from "./Today";
+import { findSets } from "@/lib/plan";
 import type { LiftDay, Person } from "@/data/types";
 
 export default function Progress() {
@@ -167,15 +168,15 @@ function Consistency({ p }: { p: Person }) {
 
 function Bests({ p }: { p: Person }) {
   const data = useGym(s => s.data);
-  const lifts = (["mon", "tue", "thu", "fri"] as const).flatMap(k => (PROGRAM[k] as LiftDay).ex.map(e => ({ e, k })));
+  const lifts = (["mon", "tue", "thu", "fri"] as const).flatMap(k => (PROGRAM[k] as LiftDay).ex.map(e => ({ e })));
   const thisWk = weekKey(new Date()), lastWk = weekKey(addDays(new Date(), -7));
-  const rows = lifts.map(({ e, k }) => {
+  const rows = lifts.map(({ e }) => {
     let best: { kg: number; reps: number } | null = null;
     Object.keys(data.weeks).forEach(w => {
-      const s = parseSet(getDay(data, w, p, k).ex?.[e.id]);
+      const s = parseSet(findSets(data, w, p, e.id).best);
       if (s && (!best || s.kg > best.kg || (s.kg === best.kg && s.reps > best.reps))) best = s;
     });
-    const now = parseSet(getDay(data, thisWk, p, k).ex?.[e.id]), prev = parseSet(getDay(data, lastWk, p, k).ex?.[e.id]);
+    const now = parseSet(findSets(data, thisWk, p, e.id).best), prev = parseSet(findSets(data, lastWk, p, e.id).best);
     return { e, best: best as { kg: number; reps: number } | null, up: now && prev ? now.kg - prev.kg : null };
   }).filter(r => r.best);
 

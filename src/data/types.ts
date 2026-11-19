@@ -1,6 +1,8 @@
 export type DayKey = "mon" | "tue" | "wed" | "thu" | "fri";
 export type Person = "a" | "b";
 export type SessionType = "push" | "pull" | "legs" | "upper" | "class";
+export type SessionKey = SessionType | "rest";
+export type WeekPlan = Record<DayKey, SessionKey>;
 export type Steps = [string, string][];
 
 export interface Exercise {
@@ -54,5 +56,10 @@ export interface DayLog {
   effort?: number;
 }
 export interface PersonWeek { weight?: number; days: Partial<Record<DayKey, DayLog>> }
-export interface Settings { names: Record<Person, string>; startWeight: Record<Person, number>; start: string }
-export interface GymData { version: number; settings: Settings; weeks: Record<string, Partial<Record<Person, PersonWeek>>> }
+export interface Settings { names: Record<Person, string>; startWeight: Record<Person, number>; start: string; order?: WeekPlan }
+export interface GymData {
+  version: number;
+  settings: Settings;
+  weeks: Record<string, Partial<Record<Person, PersonWeek>>>;
+  plans?: Record<string, WeekPlan>;   // weeks that were shuffled
+}

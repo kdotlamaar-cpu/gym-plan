@@ -2,9 +2,13 @@
    v1 (the old multi-page site) stored the same shape under "fogp:v1"; it is migrated on first run. */
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import type { DayKey, DayLog, GymData, Person, PersonWeek, SetEntry, Settings } from "@/data/types";
+import type { DayKey, DayLog, GymData, Person, PersonWeek, SessionKey, SetEntry, Settings, WeekPlan } from "@/data/types";
 import { bestOf } from "@/lib/utils";
-import { mondayOf, parseYmd, ymd } from "@/lib/dates";
+import { DAY_KEYS, mondayOf, parseYmd, ymd } from "@/lib/dates";
+import { DEFAULT_PLAN, SESSIONS, assign, planFor, resetTo } from "@/lib/plan";
+
+const validPlan = (v: unknown): v is WeekPlan =>
+  !!v && typeof v === "object" && DAY_KEYS.every(k => SESSIONS.includes((v as Record<string, SessionKey>)[k]));
 
 export type Theme = "system" | "light" | "dark";
 
@@ -28,9 +32,11 @@ export function normalize(raw: unknown): GymData {
         b: s.names?.b && s.names.b !== "Bandra" ? String(s.names.b).slice(0, 20) : base.settings.names.b
       },
       startWeight: { a: num(s.startWeight?.a, 80), b: num(s.startWeight?.b, 95) },
-      start: s.start && parseYmd(s.start) ? s.start : base.settings.start
+      start: s.start && parseYmd(s.start) ? s.start : base.settings.start,
+      ...(validPlan(s.order) ? { order: s.order } : {})
     },
-    weeks: d.weeks && typeof d.weeks === "object" ? d.weeks : {}
+    weeks: d.weeks && typeof d.weeks === "object" ? d.weeks : {},
+    plans: Object.fromEntries(Object.entries(d.plans || {}).filter(([, v]) => validPlan(v)))
   };
 }
 
@@ -55,7 +61,11 @@ interface State {
   addSet: (wk: string, p: Person, day: DayKey, exId: string, minSets: number) => void;
   removeSet: (wk: string, p: Person, day: DayKey, exId: string, minSets: number) => void;
   setDone: (wk: string, p: Person, day: DayKey, done: boolean) => void;
-  setClass: (wk: string, p: Person, cls: string | null, clsName?: string) => void;
+  setClass: (wk: string, p: Person, day: DayKey, cls: string | null, clsName?: string) => void;
+  assignSession: (wk: string, day: DayKey, s: SessionKey) => void;
+  resetWeek: (wk: string) => void;
+  makeUsual: (wk: string) => void;
+  restoreDefault: (wk: string) => void;
   setNote: (wk: string, p: Person, day: DayKey, note: string) => void;
   setWeight: (wk: string, p: Person, kg: number | null) => void;
   importData: (json: string) => void;
@@ -79,6 +89,14 @@ function withSets(d: DayLog, exId: string, minSets: number, fn: (arr: SetEntry[]
   return { ...d, sets: { ...(d.sets || {}), [exId]: arr }, ex: { ...(d.ex || {}), [exId]: best } };
 }
 
+/** Before the usual order changes, pin every other logged week to the order it was trained in. */
+function freezeOthers(data: GymData, exceptWk: string): Record<string, WeekPlan> {
+  const plans = { ...(data.plans || {}) };
+  const usual = data.settings.order || DEFAULT_PLAN;
+  Object.keys(data.weeks).forEach(w => { if (w !== exceptWk && !plans[w]) plans[w] = usual; });
+  return plans;
+}
+
 const init = legacy();
 
 export const useGym = create<State>()(
@@ -97,13 +115,28 @@ export const useGym = create<State>()(
       removeSet: (wk, p, day, exId, minSets) =>
         set(s => ({ data: withDay(s.data, wk, p, day, d => withSets(d, exId, minSets, arr => { if (arr.length > minSets) arr.pop(); })) })),
       setDone: (wk, p, day, done) => set(s => ({ data: withDay(s.data, wk, p, day, d => ({ ...d, done })) })),
-      setClass: (wk, p, cls, clsName) =>
+      setClass: (wk, p, day, cls, clsName) =>
         set(s => ({
-          data: withDay(s.data, wk, p, "wed", d => {
+          data: withDay(s.data, wk, p, day, d => {
             if (!cls) { const { cls: _c, clsName: _n, effort: _e, ...rest } = d; return { ...rest, done: false }; }
             return { ...d, cls, clsName: cls === "other" ? (clsName ?? d.clsName ?? "") : undefined, done: true };
           })
         })),
+      assignSession: (wk, day, ses) => set(s => ({ data: assign(s.data, wk, day, ses) })),
+      resetWeek: wk => set(s => ({ data: resetTo(s.data, wk, s.data.settings.order || DEFAULT_PLAN) })),
+      makeUsual: wk => set(s => {
+        const order = planFor(s.data, wk);
+        const plans = freezeOthers(s.data, wk);
+        delete plans[wk];
+        return { data: { ...s.data, settings: { ...s.data.settings, order }, plans } };
+      }),
+      restoreDefault: wk => set(s => {
+        const { order: _o, ...settings } = s.data.settings;
+        void _o;
+        // pin this week to the order it's in now, so resetTo can swap its logs back
+        const plans = { ...freezeOthers(s.data, wk), [wk]: planFor(s.data, wk) };
+        return { data: resetTo({ ...s.data, settings, plans }, wk, DEFAULT_PLAN) };
+      }),
       setNote: (wk, p, day, note) => set(s => ({ data: withDay(s.data, wk, p, day, d => ({ ...d, note: note.slice(0, 400) })) })),
       setWeight: (wk, p, kg) => set(s => ({ data: withWeek(s.data, wk, p, pw => { const n = { ...pw }; if (kg == null) delete n.weight; else n.weight = kg; return n; }) })),
       importData: json => set({ data: normalize(JSON.parse(json)) }),

@@ -5,6 +5,7 @@ import type { DayKey, Exercise, Person, SetEntry } from "@/data/types";
 import { getDay, useGym } from "@/store/data";
 import { useTimer } from "@/store/timer";
 import { buzz, cn, img, parseSet, unlockAudio } from "@/lib/utils";
+import { findSets } from "@/lib/plan";
 
 interface Props {
   e: Exercise;
@@ -29,8 +30,10 @@ export function ExerciseCard({ e, list, day, wk, prevWk, p, open, onToggle, onCo
   const sets: SetEntry[] = Array.from({ length: Math.max(e.sets, saved.length) }, (_, i) => saved[i] || { kg: null, reps: null });
   const doneN = sets.filter(s => s.ok).length;
   const complete = doneN === sets.length;
-  const prevSets = getDay(data, prevWk, p, day).sets?.[e.id] || [];
-  const prevBest = parseSet(getDay(data, prevWk, p, day).ex?.[e.id]);
+  // last week's numbers, whichever day the session was on
+  const prev = findSets(data, prevWk, p, e.id);
+  const prevSets = prev.sets;
+  const prevBest = parseSet(prev.best);
   const hint = (i: number) => {
     const s = prevSets[i];
     if (s && s.kg != null) return { kg: s.kg, reps: s.reps };
